@@ -161,9 +161,20 @@ class Disk
      * @return int
      * @throws PathException
      */
-    public function write(string $fileName, string $contents, bool $append = false, bool $lock = false) : int
+    public function write(string $fileName, string $contents, bool $append = false, bool $lock = false): int
     {
         return $this->path->write($fileName, $contents, $append, $lock);
+    }
+
+    /**
+     * @param string $pattern
+     * @param int $flags
+     * @return array
+     * @throws PathException
+     */
+    public function find(string $pattern, int $flags = 0): array
+    {
+        return $this->path->find($pattern, $flags);
     }
 
     /**

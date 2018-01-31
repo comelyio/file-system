@@ -28,6 +28,8 @@ class AbsolutePath
 
     /** @var string */
     private $path;
+    /** @var null|string */
+    private $parentPath;
     /** @var int */
     private $type;
     /** @var null|Privileges */
@@ -54,6 +56,7 @@ class AbsolutePath
         }
 
         $this->path = $absolutePath;
+        $this->parentPath = $pathInfo->parent;
         $this->type = self::IS_UNKNOWN;
 
         // Determine if path is a regular file or directory
@@ -167,6 +170,43 @@ class AbsolutePath
         }
 
         return $contents;
+    }
+
+    /**
+     * @param string $pattern
+     * @param int $flags
+     * @return array
+     * @throws PathException
+     */
+    public function find(string $pattern, int $flags = 0): array
+    {
+        if ($this->type !== self::IS_DIR) {
+            throw new PathException(
+                sprintf('Find method can only be called from a directory'),
+                PathException::BAD_TYPE
+            );
+        } elseif (!$this->privileges->read) {
+            throw new PathException(
+                sprintf('Directory "%s" is not readable', basename($this->path)),
+                PathException::PERMISSION_ERROR
+            );
+        }
+
+        // Validate Path
+        $pattern = new PathInfo($pattern, $this, "*");
+        $glob = glob($pattern->path, $flags);
+        if (is_array($glob)) {
+            $parentPathLen = strlen(strval($this->parentPath));
+            if ($parentPathLen) {
+                $glob = array_map(function ($path) use ($parentPathLen) {
+                    return substr($path, $parentPathLen);
+                }, $glob);
+            }
+
+            return $glob;
+        }
+
+        return [];
     }
 
     /**
