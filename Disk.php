@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Comely\IO\FileSystem;
 
 use Comely\IO\FileSystem\Disk\AbsolutePath;
+use Comely\IO\FileSystem\Disk\DiskConstants;
 use Comely\IO\FileSystem\Disk\PathInfo;
 use Comely\IO\FileSystem\Disk\Privileges;
 use Comely\IO\FileSystem\Exception\DiskException;
@@ -24,7 +25,7 @@ use Comely\IO\FileSystem\Exception\PathException;
  * Class Disk
  * @package Comely\IO\FileSystem
  */
-class Disk
+class Disk implements DiskConstants
 {
     /** @var AbsolutePath */
     private $path;
@@ -113,7 +114,7 @@ class Disk
             );
         }
 
-        if ($file->is() !== AbsolutePath::IS_FILE) {
+        if ($file->is() !== Disk::IS_FILE) {
             throw new PathException(
                 sprintf('"%s" in directory "%s" is not a file', basename($path), dirname($path)),
                 PathException::BAD_TYPE
@@ -143,7 +144,7 @@ class Disk
             );
         }
 
-        if ($dir->is() !== AbsolutePath::IS_DIR) {
+        if ($dir->is() !== Disk::IS_DIR) {
             throw new PathException(
                 sprintf('"%s" in "%s" is not a directory', basename($path), dirname($path)),
                 PathException::BAD_TYPE
@@ -175,6 +176,11 @@ class Disk
     public function find(string $pattern, int $flags = 0): array
     {
         return $this->path->find($pattern, $flags);
+    }
+
+    public function removeDir(AbsolutePath $path): void
+    {
+
     }
 
     /**

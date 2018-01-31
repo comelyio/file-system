@@ -20,12 +20,8 @@ use Comely\IO\FileSystem\Exception\PathException;
  * Class AbsolutePath
  * @package Comely\IO\FileSystem\Disk
  */
-class AbsolutePath
+class AbsolutePath implements DiskConstants
 {
-    public const IS_UNKNOWN = 1000;
-    public const IS_FILE = 1001;
-    public const IS_DIR = 1002;
-
     /** @var string */
     private $path;
     /** @var null|string */
@@ -144,6 +140,85 @@ class AbsolutePath
         }
 
         return $lastModifiedOn;
+    }
+
+    /**
+     * @param string|null $path
+     * @throws PathException
+     */
+    public function delete(string $path = null): void
+    {
+        // Sub-path argument passed, proceed as directory
+        if ($path) {
+            if ($this->type !== self::IS_DIR) {
+                throw new PathException(
+                    sprintf(
+                        'Delete method for regular file "%s" will not accept passed argument',
+                        basename($this->path)
+                    ),
+                    PathException::BAD_TYPE
+                );
+            } elseif (!$this->privileges->write) {
+                throw new PathException(
+                    sprintf('Cannot delete, directory "%s" is not writable', basename($this->path)),
+                    PathException::PERMISSION_ERROR
+                );
+            }
+
+            $deletePath = (new PathInfo($path, $this))->path;
+            $this->deleteRecursive($deletePath);
+            return;
+        }
+
+        // No sub-path argument, probably deleting this file
+        if ($this->type !== self::IS_FILE) {
+            throw new PathException(
+                sprintf('Cannot delete "%s" is not a regular file', basename($this->path)),
+                PathException::BAD_TYPE
+            );
+        } elseif (!$this->privileges->write) {
+            throw new PathException(
+                sprintf('Cannot delete file "%s" is not writable', basename($this->path)),
+                PathException::PERMISSION_ERROR
+            );
+        }
+
+        $delete = unlink($this->path);
+        if (!$delete) {
+            throw PathException::OperationError('Failed to delete file', $this->path);
+        }
+    }
+
+    /**
+     * @param string $path
+     * @throws PathException
+     */
+    private function deleteRecursive(string $path): void
+    {
+        if (is_file($path)) {
+            $delete = unlink($this->path);
+            if (!$delete) {
+                throw PathException::OperationError('Failed to delete file', $path);
+            }
+        } elseif (is_dir($path)) {
+            $dirScan = scandir($path);
+            if (!$dirScan) {
+                throw PathException::OperationError('Failed to scan directory', $path);
+            }
+
+            foreach ($dirScan as $dirContent) {
+                if (in_array($dirContent, [".", ".."])) {
+                    continue; // Skip dots
+                }
+
+                $this->deleteRecursive($this->suffixed($dirContent));
+            }
+
+            $delete = rmdir($path);
+            if (!$delete) {
+                throw PathException::OperationError('Failed to delete directory', $path);
+            }
+        }
     }
 
     /**
