@@ -178,11 +178,6 @@ class Disk implements DiskConstants
         return $this->path->find($pattern, $flags);
     }
 
-    public function removeDir(AbsolutePath $path): void
-    {
-
-    }
-
     /**
      * @param string $method
      * @param string $path
