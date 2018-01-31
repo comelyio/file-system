@@ -142,4 +142,107 @@ class AbsolutePath
 
         return $lastModifiedOn;
     }
+
+    /**
+     * @return string
+     * @throws PathException
+     */
+    public function read(): string
+    {
+        if ($this->type !== self::IS_FILE) {
+            throw new PathException(
+                sprintf('Cannot read "%s" is not a regular file', basename($this->path)),
+                PathException::BAD_TYPE
+            );
+        } elseif (!$this->privileges->read) {
+            throw new PathException(
+                sprintf('File "%s" is not readable', basename($this->path)),
+                PathException::PERMISSION_ERROR
+            );
+        }
+
+        $contents = file_get_contents($this->path);;
+        if (!$contents) {
+            throw PathException::OperationError('Reading failed for file', $this->path);
+        }
+
+        return $contents;
+    }
+
+    /**
+     * @param string $contents
+     * @param bool $append
+     * @param bool $lock
+     * @return int
+     * @throws PathException
+     */
+    public function edit(string $contents, bool $append = false, bool $lock = false): int
+    {
+        if ($this->type !== self::IS_FILE) {
+            throw new PathException(
+                sprintf('Cannot edit "%s" is not a regular file', basename($this->path)),
+                PathException::BAD_TYPE
+            );
+        } elseif (!$this->privileges->write) {
+            throw new PathException(
+                sprintf('File "%s" is not writable', basename($this->path)),
+                PathException::PERMISSION_ERROR
+            );
+        }
+
+        return $this->writeToFile($this->path, $contents, $append, $lock);
+    }
+
+    /**
+     * @param string $fileName
+     * @param string $contents
+     * @param bool $append
+     * @param bool $lock
+     * @return int
+     * @throws PathException
+     */
+    public function write(string $fileName, string $contents, bool $append = false, bool $lock = false): int
+    {
+        if ($this->type !== self::IS_DIR) {
+            throw new PathException(
+                sprintf('Create method can only be called from a directory'),
+                PathException::BAD_TYPE
+            );
+        } elseif (!$this->privileges->write) {
+            throw new PathException(
+                sprintf('Directory "%s" is not writable', basename($this->path)),
+                PathException::PERMISSION_ERROR
+            );
+        }
+
+        $filePath = new PathInfo($fileName, $this);
+        return $this->writeToFile($filePath->path, $contents, $append, $lock);
+    }
+
+    /**
+     * @param string $filePath
+     * @param string $contents
+     * @param bool $append
+     * @param bool $lock
+     * @return int
+     * @throws PathException
+     */
+    private function writeToFile(string $filePath, string $contents, bool $append = false, bool $lock = false): int
+    {
+        $flags = 0;
+        if ($append && $lock) {
+            $flags = FILE_APPEND | LOCK_EX;
+        } elseif ($append) {
+            $flags = FILE_APPEND;
+        } elseif ($lock) {
+            $flags = LOCK_EX;
+        }
+
+        $bytes = file_put_contents($filePath, $contents, $flags);
+        if ($bytes === false) {
+            throw PathException::OperationError('Writing failed for file', $filePath);
+        }
+
+        return $bytes;
+    }
 }

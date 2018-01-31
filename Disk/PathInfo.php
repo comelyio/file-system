@@ -35,6 +35,7 @@ class PathInfo
     public function __construct(string $path, AbsolutePath $parentPath = null, string $allowedChars = null)
     {
         // Pattern check
+        $path = trim($path);
         if (!preg_match(sprintf('#^[\w%s]{4,}$#', preg_quote('/\_.-' . $allowedChars, '#')), $path)) {
             throw new PathException('Given path contains an illegal character');
         }
@@ -47,7 +48,7 @@ class PathInfo
         // Join parent and given paths
         // Parent path feed by Disk component always has trailing DIRECTORY_SEPARATOR
         // Also, remove unnecessary/multiple slashes from path
-        $this->path =   $parentPath ? $parentPath->suffixed($path) : $path;
+        $this->path = $parentPath ? $parentPath->suffixed($path) : $path;
         $this->path = preg_replace(
             '#' . preg_quote(DIRECTORY_SEPARATOR) . '{2,}#',
             DIRECTORY_SEPARATOR,

@@ -153,6 +153,18 @@ class Disk
         return $dir;
     }
 
+    /**
+     * @param string $fileName
+     * @param string $contents
+     * @param bool $append
+     * @param bool $lock
+     * @return int
+     * @throws PathException
+     */
+    public function write(string $fileName, string $contents, bool $append = false, bool $lock = false) : int
+    {
+        return $this->path->write($fileName, $contents, $append, $lock);
+    }
 
     /**
      * @param string $method
