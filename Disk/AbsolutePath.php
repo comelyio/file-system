@@ -148,9 +148,10 @@ class AbsolutePath implements DiskConstants
      */
     public function delete(string $path = null): void
     {
-        // Sub-path argument passed, proceed as directory
-        if ($path) {
-            if ($this->type !== self::IS_DIR) {
+        // Sub-path argument passed OR it is a directory
+        if ($path || $this->type === self::IS_DIR) {
+            // Check if argument passed but is NOT a directory
+            if ($path && $this->type !== self::IS_DIR) {
                 throw new PathException(
                     sprintf(
                         'Delete method for regular file "%s" will not accept passed argument',
@@ -158,14 +159,17 @@ class AbsolutePath implements DiskConstants
                     ),
                     PathException::BAD_TYPE
                 );
-            } elseif (!$this->privileges->write) {
+            }
+
+            // Directory must be writable
+            if (!$this->privileges->write) {
                 throw new PathException(
                     sprintf('Cannot delete, directory "%s" is not writable', basename($this->path)),
                     PathException::PERMISSION_ERROR
                 );
             }
 
-            $deletePath = (new PathInfo($path, $this))->path;
+            $deletePath = $path ? (new PathInfo($path, $this))->path : $this->path;
             $this->deleteRecursive($deletePath);
             return;
         }
