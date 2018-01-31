@@ -47,7 +47,10 @@ class AbsolutePath
 
         $absolutePath = realpath($pathInfo->path);
         if (!$absolutePath) {
-            throw new PathException(sprintf('Could not resolve absolute path to "%s"', $pathInfo->path));
+            throw new PathException(
+                sprintf('Could not resolve absolute path to "%s"', $pathInfo->path),
+                PathException::NON_EXISTENT
+            );
         }
 
         $this->path = $absolutePath;

@@ -20,12 +20,16 @@ namespace Comely\IO\FileSystem\Exception;
  */
 class PathException extends DiskException
 {
+    public const NON_EXISTENT = 2001;
+    public const PERMISSION_ERROR = 2002;
+    public const BAD_TYPE = 2003;
+
     /**
      * @param string $message
      * @param string $path
      * @return PathException
      */
-    public static function OperationError(string $message, string $path) : self
+    public static function OperationError(string $message, string $path): self
     {
         return new self(
             sprintf('%s "%s" in directory "%s"', $message, basename($path), dirname($path) . DIRECTORY_SEPARATOR)

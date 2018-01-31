@@ -98,7 +98,7 @@ class Disk
      *
      * @param string $path
      * @return AbsolutePath
-     * @throws DiskException
+     * @throws PathException
      */
     public function file(string $path): AbsolutePath
     {
@@ -107,11 +107,17 @@ class Disk
         try {
             $file = $pathInfo->getAbsolute(true);
         } catch (DiskException $e) {
-            throw new DiskException(sprintf('File "%s" not found in directory "%s"', basename($path), dirname($path)));
+            throw new PathException(
+                sprintf('File "%s" not found in directory "%s"', basename($path), dirname($path)),
+                PathException::NON_EXISTENT
+            );
         }
 
         if ($file->is() !== AbsolutePath::IS_FILE) {
-            throw new DiskException('"%s" in directory "%s" is not a file', basename($path), dirname($path));
+            throw new PathException(
+                sprintf('"%s" in directory "%s" is not a file', basename($path), dirname($path)),
+                PathException::BAD_TYPE
+            );
         }
 
         return $file;
@@ -122,7 +128,7 @@ class Disk
      *
      * @param string $path
      * @return AbsolutePath
-     * @throws DiskException
+     * @throws PathException
      */
     public function dir(string $path): AbsolutePath
     {
@@ -131,11 +137,17 @@ class Disk
         try {
             $dir = $pathInfo->getAbsolute(true);
         } catch (DiskException $e) {
-            throw new DiskException(sprintf('Directory "%s" not found in "%s"', basename($path), dirname($path)));
+            throw new PathException(
+                sprintf('Directory "%s" not found in "%s"', basename($path), dirname($path)),
+                PathException::NON_EXISTENT
+            );
         }
 
         if ($dir->is() !== AbsolutePath::IS_DIR) {
-            throw new DiskException('"%s" in "%s" is not a directory', basename($path), dirname($path));
+            throw new PathException(
+                sprintf('"%s" in "%s" is not a directory', basename($path), dirname($path)),
+                PathException::BAD_TYPE
+            );
         }
 
         return $dir;
