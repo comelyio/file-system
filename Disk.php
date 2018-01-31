@@ -134,7 +134,7 @@ class Disk
             throw new DiskException(sprintf('Directory "%s" not found in "%s"', basename($path), dirname($path)));
         }
 
-        if ($dir->is() !== AbsolutePath::IS_FILE) {
+        if ($dir->is() !== AbsolutePath::IS_DIR) {
             throw new DiskException('"%s" in "%s" is not a directory', basename($path), dirname($path));
         }
 
