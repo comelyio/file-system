@@ -12,7 +12,7 @@ directory management, permissions, etc...
 
 ## Installation
 
-`composer require comelyio/cache`
+`composer require comelyio/file-system`
 
 ## Resources
 
