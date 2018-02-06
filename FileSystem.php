@@ -26,7 +26,7 @@ class FileSystem implements ComponentInterface
      * @param string $path
      * @return Disk
      */
-    public static function Disk(string $path = "."): Disk
+    public static function Disk(string $path = null): Disk
     {
         return new Disk($path);
     }

@@ -35,11 +35,16 @@ class Disk implements DiskConstants
      * @param string $path
      * @throws DiskException
      */
-    public function __construct(string $path = ".")
+    public function __construct(string $path = null)
     {
         // Making sure we are working in local environment
         if (!stream_is_local($path)) {
             throw new DiskException('Path to directory must be on local machine');
+        }
+
+        // Current directory?
+        if (!$path) {
+            $path = getcwd();
         }
 
         // Validate path
