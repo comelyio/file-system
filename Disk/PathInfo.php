@@ -39,7 +39,7 @@ class PathInfo
     {
         // Pattern check
         $this->path = trim($path);
-        if (!preg_match(sprintf('#^[\w%s]{4,}$#', preg_quote('/\_.-' . $allowedChars, '#')), $this->path)) {
+        if (!preg_match(sprintf('#^[\w%s]{4,}$#', preg_quote('/\_.:-' . $allowedChars, '#')), $this->path)) {
             throw new PathException('Given path contains an illegal character');
         }
 
