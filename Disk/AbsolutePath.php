@@ -162,7 +162,7 @@ class AbsolutePath implements DiskConstants
             }
 
             // Directory must be writable
-            if (!$this->privileges->write) {
+            if (!$this->permissions()->write) {
                 throw new PathException(
                     sprintf('Cannot delete, directory "%s" is not writable', basename($this->path)),
                     PathException::PERMISSION_ERROR
@@ -180,7 +180,7 @@ class AbsolutePath implements DiskConstants
                 sprintf('Cannot delete "%s" is not a regular file', basename($this->path)),
                 PathException::BAD_TYPE
             );
-        } elseif (!$this->privileges->write) {
+        } elseif (!$this->permissions()->write) {
             throw new PathException(
                 sprintf('Cannot delete file "%s" is not writable', basename($this->path)),
                 PathException::PERMISSION_ERROR
@@ -236,7 +236,7 @@ class AbsolutePath implements DiskConstants
                 sprintf('Cannot read "%s" is not a regular file', basename($this->path)),
                 PathException::BAD_TYPE
             );
-        } elseif (!$this->privileges->read) {
+        } elseif (!$this->permissions()->read) {
             throw new PathException(
                 sprintf('File "%s" is not readable', basename($this->path)),
                 PathException::PERMISSION_ERROR
@@ -264,7 +264,7 @@ class AbsolutePath implements DiskConstants
                 sprintf('Find method can only be called from a directory'),
                 PathException::BAD_TYPE
             );
-        } elseif (!$this->privileges->read) {
+        } elseif (!$this->permissions()->read) {
             throw new PathException(
                 sprintf('Directory "%s" is not readable', basename($this->path)),
                 PathException::PERMISSION_ERROR
@@ -302,7 +302,7 @@ class AbsolutePath implements DiskConstants
                 sprintf('Cannot edit "%s" is not a regular file', basename($this->path)),
                 PathException::BAD_TYPE
             );
-        } elseif (!$this->privileges->write) {
+        } elseif (!$this->permissions()->write) {
             throw new PathException(
                 sprintf('File "%s" is not writable', basename($this->path)),
                 PathException::PERMISSION_ERROR
@@ -327,7 +327,7 @@ class AbsolutePath implements DiskConstants
                 sprintf('Create method can only be called from a directory'),
                 PathException::BAD_TYPE
             );
-        } elseif (!$this->privileges->write) {
+        } elseif (!$this->permissions()->write) {
             throw new PathException(
                 sprintf('Directory "%s" is not writable', basename($this->path)),
                 PathException::PERMISSION_ERROR
