@@ -60,6 +60,7 @@ class Directory extends AbstractPath
     {
         $absolutePath = $fileName ? Paths::Absolute($fileName, $this) : $this->path();
         $this->functions()->chmod($absolutePath, $permissions);
+        $this->permissions(true); // Reload permission
         return $this;
     }
 

@@ -47,6 +47,7 @@ class File extends AbstractPath
     final public function chmod(int $permissions = 0755): self
     {
         $this->functions()->chmod($this->path(), $permissions);
+        $this->permissions(true); // Reload permission
         return $this;
     }
 
