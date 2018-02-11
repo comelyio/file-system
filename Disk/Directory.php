@@ -111,10 +111,7 @@ class Directory extends AbstractPath
      */
     public function createDirectory(string $dirs, int $permissions = 0777): void
     {
-        // Recursively create directories
-        if (!mkdir(Paths::Absolute($dirs, $this), $permissions, true)) {
-            throw new PathException(sprintf('Failed to create directories "%s"', $dirs));
-        }
+        $this->functions()->createDirectory(Paths::Absolute($dirs, $this), $permissions);
     }
 
     /**
