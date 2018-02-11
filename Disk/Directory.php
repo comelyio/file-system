@@ -121,7 +121,7 @@ class Directory extends AbstractPath
     public function delete(?string $fileName): void
     {
         if ($fileName) {
-            $this->functions()->delete(Paths::Absolute($fileName, $this));
+            $this->functions()->deleteRecursively(Paths::Absolute($fileName, $this));
             return;
         }
 
