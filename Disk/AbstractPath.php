@@ -105,4 +105,12 @@ abstract class AbstractPath implements DiskInterface
     {
         return $this->path;
     }
+
+    /**
+     * @return Directory|null
+     */
+    final public function parent(): ?Directory
+    {
+        return $this->parent ?? null;
+    }
 }
