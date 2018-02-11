@@ -166,11 +166,7 @@ class Functions
                     continue; // Skip dots
                 }
 
-                try {
-                    $this->deleteRecursively(Paths::Validate($absolutePath . DIRECTORY_SEPARATOR . $dirContent));
-                } catch (PathException $e) {
-                    trigger_error($e->getMessage(), E_USER_WARNING);
-                }
+                $this->deleteRecursively(Paths::Validate($absolutePath . DIRECTORY_SEPARATOR . $dirContent));
             }
 
             $delete = rmdir($absolutePath);
