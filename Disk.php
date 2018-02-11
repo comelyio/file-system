@@ -14,9 +14,12 @@ declare(strict_types=1);
 
 namespace Comely\IO\FileSystem;
 
-use Comely\IO\FileSystem\Disk\AbsolutePath;
-use Comely\IO\FileSystem\Disk\DiskConstants;
-use Comely\IO\FileSystem\Disk\PathInfo;
+use Comely\IO\FileSystem\Disk\AbstractPath;
+use Comely\IO\FileSystem\Disk\AbstractPath\Functions;
+use Comely\IO\FileSystem\Disk\Directory;
+use Comely\IO\FileSystem\Disk\DiskInterface;
+use Comely\IO\FileSystem\Disk\File;
+use Comely\IO\FileSystem\Disk\Paths;
 use Comely\IO\FileSystem\Disk\Privileges;
 use Comely\IO\FileSystem\Exception\DiskException;
 use Comely\IO\FileSystem\Exception\PathException;
@@ -25,42 +28,37 @@ use Comely\IO\FileSystem\Exception\PathException;
  * Class Disk
  * @package Comely\IO\FileSystem
  */
-class Disk implements DiskConstants
+class Disk implements DiskInterface
 {
-    /** @var AbsolutePath */
-    private $path;
+    /** @var Directory */
+    private $dir;
 
     /**
      * Disk constructor.
-     * @param string $path
+     * @param null|string $path
      * @throws DiskException
      */
-    public function __construct(string $path = null)
+    public function __construct(?string $path = null)
     {
+        // Provided path or get current directory
+        $path = $path ?? getcwd();
+
         // Making sure we are working in local environment
         if (!stream_is_local($path)) {
             throw new DiskException('Path to directory must be on local machine');
         }
 
-        // Current directory?
-        if (!$path) {
-            $path = getcwd();
-        }
-
-        // Validate path
-        $diskPath = $this->validatePath(__CLASS__, $path);
-
-        // Grab AbsolutePath instance
+        // Grab Directory Instance
         try {
-            $this->path = $diskPath->getAbsolute(true);
-        } catch (PathException $e) {
+            $this->dir = AbstractPath::Instance($path, $this, true);
+        } catch (DiskException $e) {
             // Maybe directory doesn't exist, give it another chance
-            $this->createDir($path, 0777);
-            $this->path = $diskPath->getAbsolute(true);
+            Functions::getInstance()->createDirectory(Paths::Absolute($path, $this), 0777);
+            $this->dir = AbstractPath::Instance($path, $this, true);
         }
 
         // Make sure it is a directory
-        if ($this->path->is() !== AbsolutePath::IS_DIR) {
+        if ($this->dir->is() !== Disk::IS_DIR) {
             throw new DiskException('Disk component must be provided with a path to directory');
         }
     }
@@ -71,92 +69,56 @@ class Disk implements DiskConstants
      */
     public function privileges(): Privileges
     {
-        return $this->path->permissions();
+        return $this->dir->permissions();
     }
 
     /**
-     * @param $dirs
-     * @param int $permissions
-     * @throws DiskException
+     * @return Disk
      */
-    public function createDir($dirs, int $permissions = 0777): void
+    public function clearStatCache(): self
     {
-        $path = $this->validatePath(__METHOD__, $dirs);
-
-        // Recursively create directories
-        if (!mkdir($path->path, $permissions, true)) {
-            throw new DiskException(sprintf('Failed to create directories "%s"', $dirs));
-        }
+        FileSystem::clearStatCache();
+        return $this;
     }
 
     /**
-     * @param string $path
-     * @return AbsolutePath
-     * @throws DiskException
-     */
-    public function path(string $path): AbsolutePath
-    {
-        return $this->validatePath(__METHOD__, $path)->getAbsolute(true);
-    }
-
-    /**
-     * Grab a file, making sure that it exists
-     *
-     * @param string $path
-     * @return AbsolutePath
+     * @param string $pathToFile
+     * @return File
      * @throws PathException
      */
-    public function file(string $path): AbsolutePath
+    public function file(string $pathToFile): File
     {
-        $pathInfo = $this->validatePath(__METHOD__, $path);
+        return $this->dir->file($pathToFile, false);
+    }
 
-        try {
-            $file = $pathInfo->getAbsolute(true);
-        } catch (DiskException $e) {
-            throw new PathException(
-                sprintf('File "%s" not found in directory "%s"', basename($path), dirname($path)),
-                PathException::NON_EXISTENT
-            );
-        }
-
-        if ($file->is() !== Disk::IS_FILE) {
-            throw new PathException(
-                sprintf('"%s" in directory "%s" is not a file', basename($path), dirname($path)),
+    /**
+     * @param string $pathToDirectory
+     * @return Directory
+     * @throws PathException
+     */
+    public function dir(string $pathToDirectory): Directory
+    {
+        /** @var AbstractPath $instance */
+        $instance = Directory::Instance($pathToDirectory, $this, false);
+        if (!$instance instanceof Directory) {
+            throw PathException::OperationError(
+                'Path is not a directory',
+                $instance->path(),
                 PathException::BAD_TYPE
             );
         }
 
-        return $file;
+        return $instance;
     }
 
     /**
-     * Grab a directory, making sure that it exists
-     *
-     * @param string $path
-     * @return AbsolutePath
+     * @param string $fileName
+     * @return string
      * @throws PathException
      */
-    public function dir(string $path): AbsolutePath
+    public function read(string $fileName): string
     {
-        $pathInfo = $this->validatePath(__METHOD__, $path);
-
-        try {
-            $dir = $pathInfo->getAbsolute(true);
-        } catch (DiskException $e) {
-            throw new PathException(
-                sprintf('Directory "%s" not found in "%s"', basename($path), dirname($path)),
-                PathException::NON_EXISTENT
-            );
-        }
-
-        if ($dir->is() !== Disk::IS_DIR) {
-            throw new PathException(
-                sprintf('"%s" in "%s" is not a directory', basename($path), dirname($path)),
-                PathException::BAD_TYPE
-            );
-        }
-
-        return $dir;
+        return $this->dir->read($fileName);
     }
 
     /**
@@ -169,7 +131,16 @@ class Disk implements DiskConstants
      */
     public function write(string $fileName, string $contents, bool $append = false, bool $lock = false): int
     {
-        return $this->path->write($fileName, $contents, $append, $lock);
+        return $this->dir->write($fileName, $contents, $append, $lock);
+    }
+
+    /**
+     * @param string $fileName
+     * @throws PathException
+     */
+    public function delete(string $fileName): void
+    {
+        $this->dir->delete($fileName);
     }
 
     /**
@@ -178,24 +149,8 @@ class Disk implements DiskConstants
      * @return array
      * @throws PathException
      */
-    public function find(string $pattern, int $flags = 0): array
+    public function glob(string $pattern, int $flags = 0): array
     {
-        return $this->path->find($pattern, $flags);
-    }
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @param string $allowedChars
-     * @return PathInfo
-     * @throws DiskException
-     */
-    private function validatePath(string $method, string $path, string $allowedChars = ""): PathInfo
-    {
-        try {
-            return new PathInfo($path, $this->path, $allowedChars);
-        } catch (DiskException $e) {
-            throw DiskException::PathError($method, $e->getMessage());
-        }
+        return $this->dir->glob($pattern, $flags);
     }
 }
