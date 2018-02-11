@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Comely\IO\FileSystem\Disk\AbstractPath;
 
-use Comely\IO\FileSystem\Disk\AbstractPath;
 use Comely\IO\FileSystem\Disk\Paths;
 use Comely\IO\FileSystem\Exception\PathException;
 
@@ -24,16 +23,26 @@ use Comely\IO\FileSystem\Exception\PathException;
  */
 class Functions
 {
-    /** @var AbstractPath */
-    private $path;
+    /** @var self */
+    private static $instance;
+
+    /**
+     * @return Functions
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance) {
+            return self::$instance;
+        }
+
+        return new self();
+    }
 
     /**
      * Functions constructor.
-     * @param AbstractPath $path
      */
-    public function __construct(AbstractPath $path)
+    private function __construct()
     {
-        $this->path = $path;
     }
 
     /**
@@ -68,8 +77,6 @@ class Functions
                 sprintf('Failed to set "%s" permissions for', $permissions), $absolutePath
             );
         }
-
-        $this->path->permissions(true); // Reload privileges
     }
 
     /**
