@@ -68,7 +68,7 @@ abstract class AbstractPath implements DiskInterface
     {
         $this->path = $absolutePath;
         $this->parent = $parent;
-        $this->functions = new Functions($this);
+        $this->functions = Functions::getInstance();
     }
 
     /**
