@@ -45,6 +45,20 @@ class Functions
     {
     }
 
+
+    /**
+     * @param string $absolutePath
+     * @param int $permissions
+     * @throws PathException
+     */
+    public function createDirectory(string $absolutePath, int $permissions = 0777): void
+    {
+        // Recursively create directories
+        if (!mkdir($absolutePath, $permissions, true)) {
+            throw new PathException(sprintf('Failed to create directories "%s"', $absolutePath));
+        }
+    }
+
     /**
      * @param string $absolutePath
      * @return int
