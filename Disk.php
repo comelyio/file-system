@@ -96,8 +96,12 @@ class Disk implements DiskInterface
      * @return Directory
      * @throws PathException
      */
-    public function dir(string $pathToDirectory): Directory
+    public function dir(?string $pathToDirectory = null): Directory
     {
+        if (!$pathToDirectory) {
+            return $this->dir;
+        }
+
         /** @var AbstractPath $instance */
         $instance = Directory::Instance($pathToDirectory, $this, false);
         if (!$instance instanceof Directory) {
