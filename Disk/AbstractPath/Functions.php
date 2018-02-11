@@ -154,11 +154,7 @@ class Functions
     public function deleteRecursively(string $absolutePath): void
     {
         if (is_file($absolutePath)) {
-            try {
-                $this->delete($absolutePath);
-            } catch (PathException $e) {
-                trigger_error($e->getMessage(), E_USER_WARNING);
-            }
+            $this->delete($absolutePath);
         } elseif (is_dir($absolutePath)) {
             $dirScan = scandir($absolutePath);
             if (!$dirScan) {
