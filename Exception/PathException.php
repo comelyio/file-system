@@ -27,12 +27,14 @@ class PathException extends DiskException
     /**
      * @param string $message
      * @param string $path
+     * @param int|null $flag
      * @return PathException
      */
-    public static function OperationError(string $message, string $path): self
+    public static function OperationError(string $message, string $path, ?int $flag = null): self
     {
         return new self(
-            sprintf('%s "%s" in directory "%s"', $message, basename($path), dirname($path) . DIRECTORY_SEPARATOR)
+            sprintf('%s "%s" in directory "%s"', $message, basename($path), dirname($path) . DIRECTORY_SEPARATOR),
+            $flag
         );
     }
 }
