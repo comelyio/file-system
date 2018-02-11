@@ -98,7 +98,7 @@ class Directory extends AbstractPath
         /** @var AbstractPath $instance */
         $instance = self::Instance($fileName, $this, $clearCache);
         if (!$instance instanceof File) {
-            throw PathException::OperationError('Path is not a valid', $instance->path(), PathException::BAD_TYPE);
+            throw PathException::OperationError('Path is not a file', $instance->path(), PathException::BAD_TYPE);
         }
 
         return $instance;
