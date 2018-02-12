@@ -33,42 +33,26 @@ abstract class AbstractPath implements DiskInterface
     private $privileges;
 
     /**
+     * AbstractPath constructor.
      * @param string $path
      * @param Directory|null $parent
      * @param bool $clearCache
-     * @return DiskInterface
      * @throws PathException
      */
-    public static function Instance(string $path, ?Directory $parent = null, bool $clearCache = true): DiskInterface
+    protected function __construct(string $path, ?Directory $parent = null, bool $clearCache = true)
     {
         if ($clearCache) {
             clearstatcache(true);
         }
 
-        $absolutePath = Paths::Absolute($path, $parent);
-        if (is_file($absolutePath)) {
-            return new File($absolutePath, $parent);
-        } elseif (is_dir($absolutePath)) {
-            return new Directory($absolutePath, $parent);
-        }
-
-        throw PathException::OperationError(
-            'Failed to classify given path',
-            $absolutePath,
-            PathException::BAD_TYPE
-        );
-    }
-
-    /**
-     * AbstractPath constructor.
-     * @param string $absolutePath
-     * @param Directory|null $parent
-     */
-    final private function __construct(string $absolutePath, ?Directory $parent)
-    {
-        $this->path = $absolutePath;
+        $this->path = Paths::Absolute($path, $parent);
         $this->parent = $parent;
         $this->functions = Functions::getInstance();
+
+        // Making sure we are working in local environment
+        if (!stream_is_local($this->path)) {
+            throw new PathException('Path to file/directory must be on local machine');
+        }
     }
 
     /**

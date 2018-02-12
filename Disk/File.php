@@ -23,6 +23,24 @@ use Comely\IO\FileSystem\Exception\PathException;
 class File extends AbstractPath
 {
     /**
+     * File constructor.
+     * @param string $path
+     * @param Directory|null $parent
+     * @param bool $clearCache
+     * @throws PathException
+     */
+    public function __construct(string $path, ?Directory $parent = null, bool $clearCache = true)
+    {
+        parent::__construct($path, $parent, $clearCache);
+        if (!is_file($this->path())) {
+            throw new PathException(
+                sprintf('"%s" is not a file in "%s"', basename($path), dirname($path)),
+                PathException::BAD_TYPE
+            );
+        }
+    }
+
+    /**
      * @return int
      */
     final public function is(): int

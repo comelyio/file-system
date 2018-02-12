@@ -23,9 +23,27 @@ use Comely\IO\FileSystem\Exception\PathException;
 class Directory extends AbstractPath
 {
     /**
+     * Directory constructor.
+     * @param string $path
+     * @param Directory|null $parent
+     * @param bool $clearCache
+     * @throws PathException
+     */
+    public function __construct(string $path, ?Directory $parent = null, bool $clearCache = true)
+    {
+        parent::__construct($path, $parent, $clearCache);
+        if (!is_dir($this->path())) {
+            throw new PathException(
+                sprintf('"%s" is not a directory in "%s"', basename($path), dirname($path)),
+                PathException::BAD_TYPE
+            );
+        }
+    }
+
+    /**
      * @return int
      */
-    final public function is(): int
+    public function is(): int
     {
         return self::IS_DIR;
     }
@@ -34,7 +52,7 @@ class Directory extends AbstractPath
      * @param string $suffix
      * @return string
      */
-    final public function suffixed(string $suffix): string
+    public function suffixed(string $suffix): string
     {
         return $this->path() . DIRECTORY_SEPARATOR . trim($suffix, DIRECTORY_SEPARATOR);
     }
@@ -44,7 +62,7 @@ class Directory extends AbstractPath
      * @return int
      * @throws PathException
      */
-    final public function lastModified(?string $fileName = null): int
+    public function lastModified(?string $fileName = null): int
     {
         $fileName = Paths::Absolute($fileName, $this) ?? $this->suffixed(".");
         return $this->functions()->lastModified($fileName);
@@ -56,7 +74,7 @@ class Directory extends AbstractPath
      * @return Directory
      * @throws PathException
      */
-    final public function chmod(int $permissions = 0755, ?string $fileName = null): self
+    public function chmod(int $permissions = 0755, ?string $fileName = null): self
     {
         $absolutePath = $fileName ? Paths::Absolute($fileName, $this) : $this->path();
         $this->functions()->chmod($absolutePath, $permissions);
@@ -69,7 +87,7 @@ class Directory extends AbstractPath
      * @return string
      * @throws PathException
      */
-    final public function read(string $fileName): string
+    public function read(string $fileName): string
     {
         return $this->functions()->read(Paths::Absolute($fileName, $this));
     }
@@ -82,26 +100,29 @@ class Directory extends AbstractPath
      * @return int
      * @throws PathException
      */
-    final public function write(string $fileName, string $contents, bool $append = false, bool $lock = false): int
+    public function write(string $fileName, string $contents, bool $append = false, bool $lock = false): int
     {
         return $this->functions()->write(Paths::Absolute($fileName, $this), $contents, $append, $lock);
     }
 
     /**
-     * @param string|null $fileName
+     * @param string $fileName
      * @param bool $clearCache
      * @return File
-     * @throws PathException
      */
-    final public function file(string $fileName = null, bool $clearCache = true): File
+    public function file(string $fileName, bool $clearCache = true): File
     {
-        /** @var AbstractPath $instance */
-        $instance = self::Instance($fileName, $this, $clearCache);
-        if (!$instance instanceof File) {
-            throw PathException::OperationError('Path is not a file', $instance->path(), PathException::BAD_TYPE);
-        }
+        return new File($fileName, $this, $clearCache);
+    }
 
-        return $instance;
+    /**
+     * @param string|null $directory
+     * @param bool $clearCache
+     * @return Directory
+     */
+    public function dir(string $directory = null, bool $clearCache = true): Directory
+    {
+        return new Directory($directory, $this, $clearCache);
     }
 
     /**
