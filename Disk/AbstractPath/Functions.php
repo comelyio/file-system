@@ -35,7 +35,8 @@ class Functions
             return self::$instance;
         }
 
-        return new self();
+        self::$instance = new self();
+        return self::$instance;
     }
 
     /**
