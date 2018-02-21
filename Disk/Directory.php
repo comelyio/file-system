@@ -102,7 +102,7 @@ class Directory extends AbstractPath
      */
     public function write(string $fileName, string $contents, bool $append = false, bool $lock = false): int
     {
-        return $this->functions()->write(Paths::Absolute($fileName, $this), $contents, $append, $lock);
+        return $this->functions()->write(Paths::Validate($this->suffixed($fileName)), $contents, $append, $lock);
     }
 
     /**
